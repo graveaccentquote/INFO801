@@ -10,7 +10,7 @@ class Building(object):
         
         
         
-    def processFireAlarmEvent():
-        print("Fire alarm event received in building "+self.buildingName)
+    def processFireAlarmEvent(self):
+        print("Fire alarm event received in building "+ self.buildingName)
         
     
