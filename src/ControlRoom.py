@@ -17,7 +17,9 @@ class ControlRoom(object):
     # in that building by reading the shared_memory (tuple space) attached to
     # said building.
     def pollCurrentlyInPersonel(self, buildingName):
-        self.buildingMap[buildingName].tupleSpace.shm.name
+        #self.buildingMap[buildingName].tupleSpace.shm.name
+        #TODO
+        print()
         
         
 
