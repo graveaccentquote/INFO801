@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
+from fireAlarm import FireAlarm
 from rx import Observable
 from rx import operators as ops
 from rx import create
 from rx.subject import Subject
+from rx.subject import AsyncSubject
+import keyboard  # using module keyboard
 from multiprocessing import Process
 
-from fireAlarm import FireAlarm
 
 if __name__ == '__main__':
     alarm = Subject()
