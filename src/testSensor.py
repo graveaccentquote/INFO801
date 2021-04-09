@@ -4,8 +4,21 @@ from rx import operators as ops
 from rx import create
 from rx.subject import Subject
 from multiprocessing import Process, Queue
+import time
 
 from sensor import Sensor
+
+def loveIsAnOpenDoor():
+    counter = 0
+    timeout = time.time() + 5
+    while(time.time() < timeout):
+        if(not(queue.empty())):
+            counter += 1
+            queue.get()
+            if(counter >= 2):
+                alarm.on_next("")
+                return 0
+
 
 if __name__ == '__main__':
     #Subject
@@ -17,7 +30,7 @@ if __name__ == '__main__':
     queue = Queue()
 
     #Object
-    ui = Sensor(opening, indicator, alarm, queue)
+    ui = Sensor(opening, indicator, queue)
 
     #Subscribes
     alarm.subscribe(
@@ -27,12 +40,7 @@ if __name__ == '__main__':
     indicator.subscribe(
         lambda x: print("Indicator {0}".format(x))
     )
-    indicator.subscribe(
-        lambda x: print(queue.put("something"))
-    )
-    indicator.subscribe(
-        lambda x: print(queue.put("something"))
-    )
 
     #Start
     opening.on_next("")
+    loveIsAnOpenDoor()
