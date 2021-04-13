@@ -1,34 +1,21 @@
 # -*- coding: utf-8 -*-
-from rx import operators as ops
-from rx import create
-from rx.subject import Subject
-from multiprocessing import Process
 import keyboard  # using module keyboard
-import time
+#import time
+from multiprocessing import Queue
 
-class Sensor(object):
+def writeInQueue(queue, arg):
+    queue.put(arg)
+                
+def sensor(queue):
+    keyboard.add_hotkey('s', writeInQueue, args=(queue, 'triggered'))
+    keyboard.wait('esc')
     
-    def __init__(self, subject_opening, subject_indicator, queue):
-        self.opening = subject_opening
-        self.indicator = subject_indicator
-        self.queue = queue
-        self.opening.subscribe(
-            lambda x: print("Sensor is listening".format(x))
-        )
-        self.opening.subscribe(
-            lambda x: self.indicator.on_next("")
-        )
-        self.opening.subscribe(
-            lambda x: self.activate_sensor()
-        )
-
-    def activate_sensor(self):
-        timeout = time.time() + 5
-        while(time.time() < timeout):
-            if keyboard.is_pressed('s'):  # if key 's' is pressed 
-                print("someone's entering")
-                self.queue.put("someone's entering")
-                time.sleep(0.5)
+    while (not queue.empty()):
+        print(queue.get())
+    #time.sleep(1)
+    
 
 
-
+if __name__ == '__main__':
+    queue = Queue()
+    sensor(queue)
