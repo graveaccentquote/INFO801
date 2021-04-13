@@ -5,19 +5,21 @@ from rx import create
 from rx.subject import Subject
 from multiprocessing import Process, Queue
 import time
+import threading
+
 
 from sensor import Sensor
 
 def loveIsAnOpenDoor():
     counter = 0
-    timeout = time.time() + 5
-    while(time.time() < timeout):
+    timeout = time.time() + 20
+    while(time.time() <= timeout):
         if(not(queue.empty())):
             counter += 1
             queue.get()
             if(counter >= 2):
                 alarm.on_next("")
-                return 0
+                break
 
 
 if __name__ == '__main__':
@@ -42,5 +44,6 @@ if __name__ == '__main__':
     )
 
     #Start
+    x = threading.Thread(target=loveIsAnOpenDoor, args=())
+    x.start()
     opening.on_next("")
-    loveIsAnOpenDoor()
