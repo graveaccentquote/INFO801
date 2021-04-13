@@ -44,6 +44,10 @@ if __name__ == '__main__':
     )
 
     #Start
-    x = threading.Thread(target=loveIsAnOpenDoor, args=())
+    #x = threading.Thread(target=loveIsAnOpenDoor, args=())
+    #x.start()
+    
+    x = Process(target=loveIsAnOpenDoor, args=(alarm, queue,))
     x.start()
+    
     opening.on_next("")
