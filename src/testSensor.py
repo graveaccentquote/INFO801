@@ -12,7 +12,7 @@ from sensor import Sensor
 
 def loveIsAnOpenDoor():
     counter = 0
-    timeout = time.time() + 20
+    timeout = time.time() + 5
     while(time.time() <= timeout):
         if(not(queue.empty())):
             counter += 1
@@ -44,10 +44,10 @@ if __name__ == '__main__':
     )
 
     #Start
-    #x = threading.Thread(target=loveIsAnOpenDoor, args=())
-    #x.start()
-    
-    x = Process(target=loveIsAnOpenDoor, args=(alarm, queue,))
+    x = threading.Thread(target=loveIsAnOpenDoor, args=())
     x.start()
+    
+    #x = Process(target=loveIsAnOpenDoor, args=(alarm, queue,))
+    #x.start()
     
     opening.on_next("")
