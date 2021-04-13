@@ -9,15 +9,14 @@ class Building(object):
     def __init__(self, buildingName="default_name", port=11211, debug=0):
         
         self.buildingName = buildingName
-        self.debug = debug == 1
                 
         address = '127.0.0.1:'+str(port)
         self.sharedMemory = memcache.Client([address], debug=debug)
 
+        self.debug = debug == 1
                 
     def processFireAlarmEvent(self):
-        print("Fire alarm event received in building "+ self.buildingName)
-        
+        print("Fire alarm event received in building "+ self.buildingName)        
         
     #Procedure to change the status of an employee based on their ID to 
     #currently inside the building

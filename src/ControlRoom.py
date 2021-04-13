@@ -33,12 +33,14 @@ class ControlRoom(object):
     # takes a building name as parameter, polls the list of personel currently
     # in that building by reading the shared_memory (tuple space) attached to
     # said building.
-    def pollCurrentlyInPersonel(self, buildingName):
+    def pollPersonel(self, buildingName):
         sharedMemory = self.buildingMap[buildingName]['memory']
         
         for personelId in self.buildingMap[buildingName]['personel']:
-            read = sharedMemory.get(personelId)
-            print(read)
+            t = sharedMemory.get(personelId)
+            print(t)
+            t["status"] = "AUTHORIZED"
+            sharedMemory.set(personelId, t)
     
     def addAccess(self, personelId, buildingName):
         sharedMemory = self.buildingMap[buildingName]['memory']
