@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-from rx import Observable
-from rx import operators as ops
-from rx import create
 import keyboard  # using module keyboard
-from multiprocessing import Process
-from pymitter import EventEmitter
 
-def triggerFireAlarm(ee,):
-    ee.emit("myevent", "foo")
-
-def fireAlarm(ee):
-    keyboard.add_hotkey('q', triggerFireAlarm, args=(ee,))
-    keyboard.wait('esc')
+    
+class FireAlarm(object):
+    
+    def __init__(self, key, ee):
+        self.key = key
+        self.ee = ee
+        
+    def triggerFireAlarm(self):
+        self.ee.emit("fireAlarmEvent",)
+        
+    def listenKB(self):
+        keyboard.add_hotkey(self.key, self.triggerFireAlarm, args=())
+        keyboard.wait('esc')
+        print("stoping listening to keyboard")
+        

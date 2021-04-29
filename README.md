@@ -5,7 +5,7 @@ to run this project, install the dependencies first :
 
 
 # python modules :
-    sudo apt-get install memcached python-memcache keyboard rx
+    sudo apt-get install memcached python-memcache keyboard pymitter
 
 # memcached :
 
