@@ -73,7 +73,7 @@ if __name__ == '__main__':
     controlRoom.addBuilding("8C - Chartreuse")
     controlRoom.addAccess('1', "8C - Chartreuse")
     controlRoom.addAccess('2', "8C - Chartreuse")
-    controlRoom.pollCurrentlyInPersonel("8C - Chartreuse")
+    # controlRoom.pollCurrentlyInPersonel("8C - Chartreuse")
     
-    controlRoom.removeAccess('1', "8C - Chartreuse")
-    controlRoom.pollCurrentlyInPersonel("8C - Chartreuse")
+    # controlRoom.removeAccess('1', "8C - Chartreuse")
+    # controlRoom.pollCurrentlyInPersonel("8C - Chartreuse")

@@ -20,7 +20,7 @@ Then, to start/stop the service :
     c:\memcached\memcached.exe -d start
     c:\memcached\memcached.exe -d stop
 
-By default the port for the sever will be 11211
+By default the port to access the server will be 11211
 
 
 
