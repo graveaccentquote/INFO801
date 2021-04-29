@@ -4,14 +4,11 @@ from rx import operators as ops
 from rx import create
 import keyboard  # using module keyboard
 from multiprocessing import Process
+from pymitter import EventEmitter
 
-def triggerFireAlarm(subject):
-    subject.subscribe(
-        on_next = lambda i: print("Got - {0}".format(i)),
-        on_error = lambda e: print("Error : {0}".format(e)),
-        on_completed = lambda: print("Job Done!"),
-    )
+def triggerFireAlarm(ee,):
+    ee.emit("myevent", "foo")
 
-def fireAlarm(subject):
-    keyboard.add_hotkey('q', triggerFireAlarm, args=(subject, ))
+def fireAlarm(ee):
+    keyboard.add_hotkey('q', triggerFireAlarm, args=(ee,))
     keyboard.wait('esc')
