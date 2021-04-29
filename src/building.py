@@ -1,80 +1,50 @@
 # -*- coding: utf-8 -*-
-
-#from multiprocessing import Manager
-from fireAlarm import FireAlarm
-from multiprocessing import Process
 import memcache
+from multiprocessing import Process
 from pymitter import EventEmitter
+
+from fireAlarm import FireAlarm
+
 
 class Building(object):        
     
     #when using non default port, make sure the service setting is changed
     def __init__(self,
                  fireAlarmKey,
-                 buildingName="default_name",
-                 port=11211,
+                 name="default_name",
+                 memCacheAddress='127.0.0.1:11211',
                  debug=0):
-        
-        self.buildingName = buildingName
+
+        self.name = name
+        self.memCacheAddress = memCacheAddress
+        self.debug = debug
         
         #fire alarm event emitter/handler
-        self.ee = EventEmitter()
-        
-        self.fireAlarm = FireAlarm(fireAlarmKey, self.ee)
-        self.ee.on("fireAlarmEvent", self.handleFireAlarmEvent)
-            
-        self.fireAlarmProcess = Process(target=self.fireAlarm.listenKB,
-                                        args=(self.ee, fireAlarmKey))
-        
-        self.fireAlarmProcess.start()
-
-        #shared memory        
-        address = '127.0.0.1:'+str(port)
-        self.sharedMemory = memcache.Client([address], debug=debug)
-        
-        #to see full debug logs
-        self.debug = debug == 1
-                
-    def processFireAlarmEvent(self):
-        print("Fire alarm event received in building "+ self.buildingName)        
-        
-    #Procedure to change the status of an employee based on their ID to 
-    #currently inside the building
-    def processPersonelEnteringEvent(self, personelId):
-        #read the tuple
-        t = self.sharedMemory.get(personelId)
-        
-        if self.debug:
-            print("personel entering " + personelId + " " + t)
-        
-        #modify the tuple's status field
-        t["status"] = "CURRENTLY INSIDE"
-
-        #write the tuple
-        self.sharedMemory.set(personelId, t)
-
-    #Procedure to change the status of an employee based on their ID to 
-    #authorized after leaving the building        
-    def processPersonelLeavingEvent(self, personelId):
-        #read the tuple
-        t = self.sharedMemory.get(personelId)
-        
-        if self.debug:
-            print("personel entering "+personelId + " " + t)
-        
-        #modify the tuple's status field
-        t["status"] = "AUTHORIZED"
-
-        #write the tuple
-        self.sharedMemory.set(personelId, t)
+        ee = EventEmitter()
+        fireAlarm = FireAlarm(fireAlarmKey, ee)
+        ee.on("fireAlarmEvent", self.handleFireAlarmEvent)
+        fireAlarmProcess = Process(target=fireAlarm.listenKB)
+        fireAlarmProcess.start()
         
         
     def handleFireAlarmEvent(self):
-        print ("Received Alarm in build "+ self.name)
+        print ("Received Fire Alarm in building "+ self.name)
+                                
+        #updating locations
+        mem = memcache.Client([self.memCacheAddress], debug=self.debug)
+        
+        idList = mem.get("idList")
+
+        for pId in idList:
+            personel = mem.get(pId)
+            
+            if self.name == personel['location']:
+                personel['location'] = "outside"
+                mem.set(pId, personel)
         
     
 if __name__ == '__main__':
-    b = Building("8C - Chartreuse", 'q')
-    b2 = Building("test", 's')
+    chartreuse  = Building('m', "8C - Chartreuse")
+    pm          = Building('p', "3 - Pôle Montagne", debug=1)
         
     

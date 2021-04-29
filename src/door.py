@@ -2,10 +2,8 @@
 
 import memcache
 import time
-from multiprocessing import Process, Queue
 import keyboard
 
-from sensor import sensor
 
 class Door(object):
     
@@ -51,17 +49,17 @@ class Door(object):
         self.locked = False
         
         
-        while not sensorQueue.empty():
-            sensorQueue.get() 
+        while not self.sensorQueue.empty():
+            self.sensorQueue.get() 
             
         t = time.time()
         count = 0
         
         while((time.time() - t ) < self.timeout):
-            if (not sensorQueue.empty()):
+            if (not self.sensorQueue.empty()):
                 if count == 0:
                     #empty the queue
-                    sensorQueue.get(block=False)
+                    self.sensorQueue.get(block=False)
                     
                     count += 1
                     
@@ -113,17 +111,17 @@ class Door(object):
         
         self.locked = False
         
-        while not sensorQueue.empty():
-            sensorQueue.get() 
+        while not self.sensorQueue.empty():
+            self.sensorQueue.get() 
             
         t = time.time()
         count = 0
     
         while((time.time() - t ) < self.timeout):
-            if (not sensorQueue.empty()):
+            if (not self.sensorQueue.empty()):
                 if count == 0:
                     #empty the queue
-                    sensorQueue.get(block=False)
+                    self.sensorQueue.get(block=False)
                     
                     count += 1
                     
