@@ -11,11 +11,11 @@ class Building(object):
     #when using non default port, make sure the service setting is changed
     def __init__(self,
                  fireAlarmKey,
-                 name="default_name",
+                 buildingName="default_name",
                  port=11211,
                  debug=0):
         
-        self.name = name
+        self.buildingName = buildingName
         
         #fire alarm event emitter/handler
         self.ee = EventEmitter()
@@ -24,7 +24,7 @@ class Building(object):
         self.ee.on("fireAlarmEvent", self.handleFireAlarmEvent)
             
         self.fireAlarmProcess = Process(target=self.fireAlarm.listenKB,
-                                        args=())
+                                        args=(self.ee, fireAlarmKey))
         
         self.fireAlarmProcess.start()
 
@@ -36,7 +36,7 @@ class Building(object):
         self.debug = debug == 1
                 
     def processFireAlarmEvent(self):
-        print("Fire alarm event received in building "+ self.name)        
+        print("Fire alarm event received in building "+ self.buildingName)        
         
     #Procedure to change the status of an employee based on their ID to 
     #currently inside the building
@@ -70,11 +70,11 @@ class Building(object):
         
         
     def handleFireAlarmEvent(self):
-        print ("Received Alarm in building "+ self.name)
+        print ("Received Alarm in build "+ self.name)
         
     
 if __name__ == '__main__':
-    b = Building('q', "8C - Chartreuse")
-    b2 = Building('s', "test")
+    b = Building("8C - Chartreuse", 'q')
+    b2 = Building("test", 's')
         
     

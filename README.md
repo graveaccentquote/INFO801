@@ -14,11 +14,11 @@ The Windows client can be found here :
     * win64: http://downloads.northscale.com/memcached-win64-1.4.4-14.zip
 
 You'll need to install it from an elevated command prompt :
-    c:\memcached\memcached.exe -d install (replace with actual location of your exe file)
+    memcached.exe -d install (replace with actual location of your exe file)
 
 Then, to start/stop the service : 
-    c:\memcached\memcached.exe -d start
-    c:\memcached\memcached.exe -d stop
+    memcached.exe -d start
+    memcached.exe -d stop
 
 By default the port to access the server will be 11211
 

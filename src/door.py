@@ -1,116 +1,163 @@
 # -*- coding: utf-8 -*-
 
 import memcache
+import time
 from multiprocessing import Process, Queue
+import keyboard
 
 from sensor import sensor
 
-import time
-
-
-## class representing a door,a door is part of a building, and is linked to 1 
-# sensor and contains 2 badge readers
-
 class Door(object):
     
-    def __init__(self, sensorQueue, timeout=5, port=11211, debug=0):
-        self.debug = debug
+    def __init__(self,
+                 name,
+                 parentBuildingName,
+                 sensorQueue,
+                 timeout=5,
+                 memCacheAddress='127.0.0.1:11211',
+                 debug=0):
+    
+        self.locked = True
         self.timeout = timeout
+        self.name = name
+        self.parentBuildingName = parentBuildingName
         
+        #sensor
         self.sensorQueue = sensorQueue
                 
-        address = '127.0.0.1:'+str(port)
-        self.sharedMemory = memcache.Client([address], debug=debug)
-
-        self.debug = debug == 1
-        
-    def switchPersonelStateToOut(self):
-        print("test")
-        
-    
-    #check an id to see if a person is currently allowed to get in
-    def checkIdForExit(self, personelId):
+        #shared memory
+        self.sharedMemory = memcache.Client([memCacheAddress], debug=debug)
+                        
+    def processPersonelEnteringEvent(self, personelId):
         #read the tuple
-        t = self.sharedMemory.get(personelId)
-        status = t["status"]
+        p = self.sharedMemory.get(personelId)
         
-        if status == "CURRENTLY INSIDE":
-            print("Opening door")
-            return True           
-        elif status == "AUTHORIZED":
-            print("Error, personel is already outside")
-            return False
-        else :
-            print("Error, personel not found")
-            return False
+        #check if authorized
+        if self.parentBuildingName not in p['auth']:
+            print("BUILDING : " 
+                  + self.parentBuildingName 
+                  + " - Personel tried to enter without authorizations : " 
+                  + p['name'])
+            return
     
-    #check an id to see if a person is currently allowed to get out
-    def checkIdFOrEntering(self, personelId):
-        #read the tuple
-        t = self.sharedMemory.get(personelId)
-        
-        status = t["status"]
-        
-        if status == "AUTHORIZED":
-            print("Opening door")
-            return True           
-        elif status == "CURRENTLY INSIDE":
-            print("Error, personel is already inside")
-            return False
-        else :
-            print("Error, personel not found")
-            return False
     
-    def exitProtocol(self, personelId):
-        #create new queue, give it to the sensor via mobility
-        q = Queue()        
-        self.sensorQueue.put(q)
+        if p['location'] != "outside":
+            print("Error trying to enter building when not outside")
+            return 
         
-        #wait for timeout seconds while counting the messages received on q
-        count = 0
-        while((time.time() - t ) < self.timeout):
-            if (not sensorQueue.empty()):
-                sensorQueue.get(block=False)
-                count += 1
-                
-                #if first time, everything is fine, switch the state in mem
-                if count == 1:
-                    self.switchPersonelStateToOut()
-                #if more than 1 person detected, trigger alarm
-                else:
-                    self.triggerAlarm()
-                    break
-                
-    def enteringProtocol(self, personelId):
-        #create new queue, give it to the sensor via mobility
-        q = Queue()        
-        self.sensorQueue.put(q)
+        #open the door for 5 seconds
+        print("BUILDING : " + self.parentBuildingName + " Opening door (entering): " + self.name)
         
-        #wait for timeout seconds while counting the messages received on q
-        count = 0
-        while((time.time() - t ) < self.timeout):
-            if (not sensorQueue.empty()):
-                sensorQueue.get(block=False)
-                count += 1
-                
-                #if first time, everything is fine, switch the state in mem
-                if count == 1:
-                    self.switchPersonelStateToIn(personelId)
-                #if more than 1 person detected, trigger alarm
-                else:
-                    self.triggerAlarm()
-                    break
+        self.locked = False
+        
+        
+        while not sensorQueue.empty():
+            sensorQueue.get() 
             
-
-if __name__ == '__main__':
-    sensorQueue = Queue()
-    d = Door(sensorQueue)
-
-    sensor_process = Process(target=sensor, args=(sensorQueue,))
+        t = time.time()
+        count = 0
         
-    sensor_process.start()
-    t = time.time()
+        while((time.time() - t ) < self.timeout):
+            if (not sensorQueue.empty()):
+                if count == 0:
+                    #empty the queue
+                    sensorQueue.get(block=False)
+                    
+                    count += 1
+                    
+                    print("BUILDING : " 
+                          + self.parentBuildingName 
+                          + " - Personel entering : " 
+                          + p['name'])
+                    
+                    #update the tuple
+                    p['location'] = self.parentBuildingName
+                    self.sharedMemory.set(personelId, p)
+                else:
+                    print("Detected more than 1 person, triggering Alarm")
+                    break
+                
+        print("BUILDING : " 
+              + self.parentBuildingName 
+              + " closing door : " 
+              + self.name)
+        
+        self.locked = True
+
+        
+    #return true if personel is allowed in    
+    def checkIfAuthorized(self, personelId):
+        #read the tuple
+        p = self.sharedMemory.get(personelId)
+      
+        return self.parentBuildingName in p['auth']
     
-    while((time.time() - t ) < 2):
-        if (not sensorQueue.empty()):
-            print(sensorQueue.get())
+    def processPersonelLeavingEvent(self, personelId):
+        #read the tuple
+        p = self.sharedMemory.get(personelId)
+        
+        if p['location'] != self.parentBuildingName:
+            print("Error, trying to leave building when not inside")
+            return
+        
+        print("BUILDING : " 
+              + self.parentBuildingName 
+              + " - Personel leaving : " 
+              + p['name'])
+        
+        #open the door for 5 seconds
+        print("BUILDING : " 
+              + self.parentBuildingName 
+              + " Opening door (exiting): " 
+              + self.name)
+        
+        self.locked = False
+        
+        while not sensorQueue.empty():
+            sensorQueue.get() 
+            
+        t = time.time()
+        count = 0
+    
+        while((time.time() - t ) < self.timeout):
+            if (not sensorQueue.empty()):
+                if count == 0:
+                    #empty the queue
+                    sensorQueue.get(block=False)
+                    
+                    count += 1
+                    
+                    print("BUILDING : " 
+                          + self.parentBuildingName 
+                          + " - Personel leaving : " 
+                          + p['name'])
+                    
+                    #update the tuple
+                    p['location'] = "outside"
+                    self.sharedMemory.set(personelId, p)
+                else:
+                    print("Detected more than 1 person, triggering Alarm")
+                    break
+                
+        print("BUILDING : " 
+              + self.parentBuildingName 
+              + " closing door : " 
+              + self.name)
+        
+        self.locked = True
+        
+    def handleFireAlarmEvent(self):
+        print("Fire Alarm event received, unlocking")
+        self.locked = False
+        
+        
+    def listenKeyboard(self):
+        keyboard.add_hotkey('z', self.processPersonelEnteringEvent, args=("1"))
+        keyboard.add_hotkey('s', self.processPersonelLeavingEvent,  args=("1"))
+        keyboard.add_hotkey('e', self.processPersonelEnteringEvent, args=("2"))
+        keyboard.add_hotkey('d', self.processPersonelLeavingEvent,  args=("2"))
+        keyboard.add_hotkey('r', self.processPersonelEnteringEvent, args=("4"))
+        keyboard.add_hotkey('f', self.processPersonelLeavingEvent,  args=("4"))
+        keyboard.wait('esc')
+    
+    
